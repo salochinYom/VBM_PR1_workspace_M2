@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from std_srvs.srv import Trigger
-from model_service_interface.srv import ProcessImages
+from define_service.srv import ProcessImages
 from cv_bridge import CvBridge
 from std_msgs.msg import Float64MultiArray
 import numpy as np
