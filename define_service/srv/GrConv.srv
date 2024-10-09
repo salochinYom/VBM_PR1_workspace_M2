@@ -1,0 +1,7 @@
+# Request
+string model    # The request is a string representing a model
+
+---
+# Response
+std_msgs/Float64MultiArray grasp    # The response is a multi-array of grasps (possibly grasp poses)
+
