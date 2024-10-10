@@ -63,22 +63,22 @@ class GCCNN_Processor(Node):
     #set the model to evaluation mode
     self.model.eval()
 
-    #test pipeline
-    depth = cv2.imread(absPath + '/pcd0100d.tiff', -1)
-    imh, imw = depth.shape
-    print(imh, " ", imw)
+    # #test pipeline
+    # depth = cv2.imread(absPath + '/pcd0100d.tiff', -1)
+    # imh, imw = depth.shape
+    # print(imh, " ", imw)
 
-    grasp= self.get_grasp(depth, self.crop_size, self.out_size, self.crop_y_offset, imh, imw)
-    print(grasp)
+    # grasp= self.get_grasp(depth, self.crop_size, self.out_size, self.crop_y_offset, imh, imw)
+    # print(grasp)
 
-    #get grasp visualization
-    RGB_image = cv2.imread(absPath + "/pcd0100r.png", cv2.IMREAD_COLOR)
-    RGB_viz = self.draw(grasp, RGB_image)
-    #print("its working maybe")
+    # #get grasp visualization
+    # RGB_image = cv2.imread(absPath + "/pcd0100r.png", cv2.IMREAD_COLOR)
+    # RGB_viz = self.draw(grasp, RGB_image)
+    # #print("its working maybe")
 
-    #publish the depth image
-    while True:
-      self.publisher_.publish(self.br.cv2_to_imgmsg(RGB_viz, encoding="bgr8"))
+    # #publish the depth image
+    # while True:
+    #   self.publisher_.publish(self.br.cv2_to_imgmsg(RGB_viz, encoding="bgr8"))
 
 
   def pre_process(self, depth, crop_size, out_size=300, return_mask=False, crop_y_offset=0, imh=480, imw=640):
