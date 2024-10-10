@@ -56,6 +56,7 @@ class GraspDetectionGGCNN():
         depth, depth_nan_mask = self.pre_process(depth, crop_size, out_size, True, crop_y_offset)
         # normalize
         depth = np.clip((depth - depth.mean()), -1, 1)
+        depth = np.uint8(depth)
         tensor = torch.from_numpy(depth).float()
         
         tensor = torch.reshape(tensor, (1, 300, 300))
@@ -71,9 +72,9 @@ class GraspDetectionGGCNN():
 
 
 
-    def get_grasp(self,depth, crop_size, out_size, crop_y_offset):
+    def get_grasp(self,rgb, depth, crop_size, out_size, crop_y_offset):
         pred_out=self.predict(depth, crop_size, out_size, crop_y_offset)
-
+        imh, imw = depth.shape[:2]
         argmax = np.argmax(pred_out[0])
         x= argmax%300
         y= int(np.ceil(argmax/300))
@@ -82,10 +83,14 @@ class GraspDetectionGGCNN():
         width= pred_out[3][0][y][x]*150
         angle = 0.5 * np.arctan2(pred_out[2][0][y][x],pred_out[1][0][x][y]) 
         
-        return np.array([x,y,angle,width])
+        grasp = np.array([x,y,angle,width])
+
+        self.draw(rgb,grasp,imw,imh,crop_y_offset)
+
+        return grasp
 
 
-    def draw(self,grasp,imw,imh,crop_y_offset):
+    def draw(self,rgb, grasp,imw,imh,crop_y_offset):
         x=grasp[0]
         y=grasp[1]
         angle=grasp[2]
@@ -100,14 +105,18 @@ class GraspDetectionGGCNN():
         p2_y= int(y-(width*0.5*np.sin(angle)))
         print(p1_x, p1_y, p2_x, p2_y)
 
-        object= cv2.imread("pcd0100r.png", cv2.IMREAD_COLOR)
-        object= cv2.line(object,(p1_x,p1_y),(p2_x,p2_y),(255,0,0),5)
-        cv2.imshow("Grasp", object)
+        test = rgb.copy()
+        current_frame = cv2.cvtColor(test,cv2.COLOR_RGB2BGR)
+
+        # object= cv2.imread("pcd0100r.png", cv2.IMREAD_COLOR)  
+        grasp_gg= cv2.line(current_frame,(p1_x,p1_y),(p2_x,p2_y),(255,0,0),5)
+        cv2.imshow("Grasp_GGCNN", grasp_gg)
         cv2.waitKey(0)
 
     def testing_model(self):
 
         depth = imread(r'/home/farhan/Desktop/VBRM_project/grasp_model/test_dataset_cornel/pcd0100d.tiff')
+
         imh, imw = depth.shape[:2]
         out_size=300
         crop_y_offset=40
