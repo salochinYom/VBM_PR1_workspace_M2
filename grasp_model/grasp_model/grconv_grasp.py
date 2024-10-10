@@ -5,12 +5,16 @@ import logging
 import time
 import numpy as np
 import torch.utils.data
-import post_process
+
 from imageio import imread
 import cv2
 import torch
 import matplotlib.pyplot as plt
+import sys
 
+
+
+sys.path.append('/home/farhan/vbrm_project/src/grasp_model/grasp_model')
 import post_process
 from grasp import detect_grasps
 
@@ -25,13 +29,16 @@ class GraspDetectionNet():
 
     def load_and_preprocess_image(self, rgb_img, depth_img):
 
-        rgb_img_cropped,rgb_offset = self.crop_image(rgb_img)
+        # og_rgb = rgb_img.copy() 
+        og_depth = depth_img.copy()
+
+        rgb_img_cropped,rgb_offset = self.crop_image(rgb_img)  
         depth_img_cropped ,depth_offset= self.crop_image(depth_img)
 
         # Depth image pre-processing
         depth_img_preprocessed = self.preprocess_depth_image(depth_img_cropped)
 
-        return rgb_img_cropped, depth_img_preprocessed,rgb_offset
+        return rgb_img_cropped, depth_img_preprocessed,rgb_offset,og_depth
 
     def crop_image(self, image, crop_size=(224, 224)):
     #     height, width = image.shape[:2]
@@ -72,11 +79,13 @@ class GraspDetectionNet():
         # Scale the depth image for normalization
         max_val = np.max(np.abs(depth_copy))
         depth_copy = depth_copy.astype(np.float32) / max_val
-
+       
         # Inpainting to fix missing pixels
         depth_inpainted = cv2.inpaint(depth_copy, mask_dilated, 1, cv2.INPAINT_NS)
+
+        return depth_inpainted[1:-1, 1:-1]
         
-        return cv2.resize(depth_inpainted[1:-1, 1:-1], (224, 224))
+        # return cv2.resize(depth_inpainted[1:-1, 1:-1], (224, 224))
 
 
     def format_inputs(self, rgb_img, depth_img):
@@ -87,6 +96,8 @@ class GraspDetectionNet():
 
         # Normalize Depth Image
         depth_img = np.clip(depth_img - np.mean(depth_img), -1, 1)
+        depth_img = np.uint8(depth_img)
+
 
         # Concatenate RGB and depth
         combined_input = np.vstack([np.expand_dims(depth_img, 0), rgb_img])
@@ -122,7 +133,8 @@ class GraspDetectionNet():
         # Adjust grasp rectangle coordinates by the crop offset
         for grasp in grasp_rectangles:
             # Adjust the center of the grasp rectangle by adding the crop offset
-            adjusted_center = (grasp.center[0] + offset[0], grasp.center[1] + offset[1])
+            # adjusted_center = (grasp.center[0] + offset[0], grasp.center[1] + offset[1])
+            adjusted_center = (grasp.center[0] , grasp.center[1])
             grasp.center = adjusted_center
             
             print(f"Adjusted Grasp Center: {adjusted_center}") 
@@ -137,7 +149,7 @@ class GraspDetectionNet():
 
 
     def run_grasp_detection(self, rgb, depth):
-        rgb_img, depth_img,offset = self.load_and_preprocess_image(rgb,depth)
+        rgb_img, depth_img,offset,og_depth  = self.load_and_preprocess_image(rgb,depth)
         quality, angle, width  = self.predict_grasp(rgb_img, depth_img)
 
         grasp_rectangles = detect_grasps(quality, angle, width, no_grasps=1) 
@@ -152,8 +164,8 @@ class GraspDetectionNet():
         theta = round(grasp_rectangles[0].angle, 5)
 
         print(f"Grasp Center: ({x_cen}, {y_cen}), Width: {w}, Height: {h}, Angle: {theta}")
-        self.visualize_grasp(rgb, grasp_rectangles,offset)
-        return [x_cen, y_cen, w, h, theta], depth_img, grasp_rectangles
+        self.visualize_grasp(rgb_img, grasp_rectangles,offset)
+        return [x_cen, y_cen, w, h, theta], og_depth, grasp_rectangles
     
 
     def testing_model(self):
