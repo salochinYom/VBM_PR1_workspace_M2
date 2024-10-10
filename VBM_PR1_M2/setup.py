@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'listner = VBM_PR1_M2.subscriber_member_function:main',
             'service = VBM_PR1_M2.servicecaller:main',
+            'ggcnn_model_host = VBM_PR1_M2.ggcnn.ggcnn_grasp_processor:main'
         ],
     },
 )
