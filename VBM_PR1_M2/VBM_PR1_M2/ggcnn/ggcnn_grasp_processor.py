@@ -6,6 +6,10 @@ absPath = os.path.dirname(os.path.realpath(__file__))
 #adds said path to the thing
 sys.path.append(absPath)
 
+#for the service
+from define_service.srv import ProcessImages
+from std_msgs.msg import Float64MultiArray
+
 import torch
 #import utils
 from models.ggcnn import GGCNN
@@ -45,6 +49,7 @@ class GCCNN_Processor(Node):
     self.publisher_ = self.create_publisher(Image, 'output_image', 10)
 
     #create service for handling service requests for the things
+    self.srv=self.create_service(ProcessImages, 'process_images', self.process_images_callback)
 
       
     # Used to convert between ROS and OpenCV images
@@ -79,6 +84,39 @@ class GCCNN_Processor(Node):
     # #publish the depth image
     # while True:
     #   self.publisher_.publish(self.br.cv2_to_imgmsg(RGB_viz, encoding="bgr8"))
+    self.get_logger().info('Service Ready')
+
+  def process_images_callback(self, request, response):
+    self.get_logger().info('Request received')
+    #depth_array = np.array(request.depth_image.data, dtype=float).flatten()
+    #print(request.depth_image)
+
+    depthMsg = request.depth_image
+
+    #seperate out the request into its RGB image and its depth image
+    depth =  self.br.imgmsg_to_cv2(depthMsg)
+    RGB_image = self.br.imgmsg_to_cv2(request.rgb_image)
+    print(depth)
+    depth * 4
+
+    #get the size of the image
+    imh, imw = depth.shape
+
+    #get the grasp
+    grasp= self.get_grasp(depth, self.crop_size, self.out_size, self.crop_y_offset, imh, imw)
+
+    #print out a visualization
+    #RGB_viz = self.draw(grasp, RGB_image)
+    #self.publisher_.publish(self.br.cv2_to_imgmsg(RGB_viz, encoding="bgr8"))
+    print(grasp)
+
+    result_msg = Float64MultiArray()
+    result_msg.data = grasp.tolist()
+    response.result = result_msg        
+    self.get_logger().info('Response sent')
+    return response
+
+    
 
 
   def pre_process(self, depth, crop_size, out_size=300, return_mask=False, crop_y_offset=0, imh=480, imw=640):

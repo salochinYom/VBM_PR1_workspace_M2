@@ -1,3 +1,11 @@
+#stupid absolute path imports for ggcnn
+import sys
+import os
+#gets the absolute path to the directory that contains the useful stuff to make the things
+absPath = os.path.dirname(os.path.realpath(__file__))
+#adds said path to the thing
+sys.path.append(absPath)
+
 #is not a ros script 
 import torch
 import utils
@@ -19,7 +27,7 @@ if __name__ == '__main__':
             else "cpu"
         )
     print(device)
-    model = torch.load('ggcnn_weights_cornell/ggcnn_epoch_23_cornell', map_location=torch.device(device), weights_only=False)
+    model = torch.load(absPath + '/ggcnn_weights_cornell/ggcnn_epoch_23_cornell', map_location=torch.device(device), weights_only=False)
     #model(tensor) #input tensor then output tensor
     #model.eval()
     #print("hello world")
@@ -28,7 +36,8 @@ if __name__ == '__main__':
     model.eval()
 
     #import the image
-    depth = cv2.imread('Jacquard_Samples/Samples/1a9fa4c269cfcc1b738e43095496b061/3_1a9fa4c269cfcc1b738e43095496b061_perfect_depth.tiff', -1)
+    depth = cv2.imread(absPath + '/Jacquard_Samples/Samples/1a9fa4c269cfcc1b738e43095496b061/3_1a9fa4c269cfcc1b738e43095496b061_perfect_depth.tiff', -1)
+    print(depth)
 
     #reshape the image to be 300 by 300 pixels
     depth = cv2.resize(depth, (300,300))

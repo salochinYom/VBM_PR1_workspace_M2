@@ -1,3 +1,12 @@
+#stupid absolute path imports for ggcnn
+import sys
+import os
+#gets the absolute path to the directory that contains the useful stuff to make the things
+absPath = os.path.dirname(os.path.realpath(__file__))
+#adds said path to the thing
+sys.path.append(absPath)
+
+
 import torch
 import utils
 from models.ggcnn import GGCNN
@@ -91,7 +100,7 @@ def draw(grasp):
     p2_y= int(y-(width*0.5*np.sin(angle)))
     print(p1_x, p1_y, p2_x, p2_y)
 
-    object= cv2.imread("pcd0100r.png", cv2.IMREAD_COLOR)
+    object= cv2.imread(absPath + "/pcd0100r.png", cv2.IMREAD_COLOR)
     object= cv2.line(object,(p1_x,p1_y),(p2_x,p2_y),(255,0,0),5)
     cv2.imshow("Grasp", object)
     cv2.waitKey(0)
@@ -110,10 +119,11 @@ if __name__ == '__main__':
             if torch.backends.mps.is_available()
             else "cpu"
         )
-    model = torch.load('ggcnn_weights_cornell/ggcnn_epoch_23_cornell', map_location=torch.device(device), weights_only=False)
+    model = torch.load(absPath + '/ggcnn_weights_cornell/ggcnn_epoch_23_cornell', map_location=torch.device(device), weights_only=False)
     print(model)
 
-    depth = cv2.imread('pcd0100d.tiff', -1)
+    depth = cv2.imread(absPath + '/pcd0100d.tiff', -1)
+    print(depth)
     imh, imw = depth.shape
     print(imh, " ", imw)
     out_size=300

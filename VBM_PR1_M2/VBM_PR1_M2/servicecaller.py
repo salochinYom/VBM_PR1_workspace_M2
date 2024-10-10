@@ -1,3 +1,11 @@
+#stupid absolute path imports for ggcnn
+import sys
+import os
+#gets the absolute path to the directory that contains the useful stuff to make the things
+absPath = os.path.dirname(os.path.realpath(__file__))
+#adds said path to the thing
+sys.path.append(absPath)
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
