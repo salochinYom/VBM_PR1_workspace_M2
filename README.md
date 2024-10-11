@@ -1,18 +1,20 @@
 # Instructions to run the repository:
+### 1) Navigate to your workspace's `src` directory:
+```bash
    1) Navigate to your workspace's src directory:
-      bash
-   cd ~/your_workspace/src
+      
+      cd ~/your_workspace/src
    2) Clone the repository:
-      bash
+      
       git clone https://github.com/salochinYom/VBM_PR1_workspace_M2.git
    3) Build the workspace
-      bash 
+      
       colcon build --symlink install
    4) Build the workspace
-      bash 
+      
       source install/setup.bash
    5) Run the simulation:
-      bash 
+      
       ros2 launch vbm_project_env simulation.launch.py
    6) Start the grasp model service:
       bash
