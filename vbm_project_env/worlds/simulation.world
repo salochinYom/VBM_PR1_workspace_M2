@@ -17,21 +17,18 @@
         <pose>0 0 -0.5 0 0 1.57</pose>
     </include>
 
+  <!-- We make the coke can be placed in a lay down position on the table (CURRENT CASE)-->
     <include>
       <uri>model://coke_can</uri>
-      <pose>0 0 0.6 0 0 0</pose>
+      <pose>0 0 0.6 0 -1.57 0</pose>
    </include>
-   <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
-      <ros>
-        <namespace>/gazebo</namespace>
-      </ros>
-      <update_rate>1.0</update_rate>
-    </plugin>
-    <plugin name="gazebo_ros_init" filename="libgazebo_ros_init.so">
-      <ros>
-        <namespace>/gazebo</namespace>
-      </ros>
-    </plugin>
-    <plugin name="gazebo_ros_factory" filename="libgazebo_ros_factory.so"/>
+   
+  <!-- We make the coke can be placed in a upright position on the table -->
+  
+    <!-- include>
+      <uri>model://coke_can</uri>
+      <pose>0 0 0.6 0 0.0 0</pose>
+   </include -->
+  
   </world>
 </sdf>
