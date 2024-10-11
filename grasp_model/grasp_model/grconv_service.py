@@ -2,126 +2,110 @@ import rclpy
 from rclpy.node import Node
 import cv2
 import numpy as np
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
 import matplotlib.pyplot as plt
-from std_msgs.msg import Float64MultiArray 
+from std_msgs.msg import Float64MultiArray       # Message type for publishing grasp data
+from sensor_msgs.msg import Image                # Message type for RGB and depth image
+from cv_bridge import CvBridge                   # Converts between ROS images and OpenCV images
 
-from define_service.srv import GrConv
-from .grconv_grasp import *  # Use a dot for relative import   
-# from .gg import * 
-# from .ggcnn_grasp import * 
-from .ggcnn_test import *
-
-# from .ggcnn_process import *
-
+from .grconv_grasp import *                # Relative import for GRConvNet grasp detection
+from .ggcnn_grasp import *                 # Relative import for GGCNN grasp detection
+from define_service.srv import GrConv      # Custom service definition for grasp model selection
 
 
 class GraspService(Node):
 
     def __init__(self):
+        super().__init__('Grasp_grconv_service')  # Initialize the node 
 
-        super().__init__('Grasp_grconv_service')
-
-
-        # subscribe to rgb and depth images from realsense topic
+        # Subscription to the RGB image topic from the Realsense camera
         self.rgb_img_subs = self.create_subscription(
             Image,
-            '/realsense/image_raw', 
+            '/realsense/image_raw',
             self.rgb_callback,
             10)
         
-        # Subscriber to depth image
+        # Subscription to the depth image topic from the Realsense camera
         self.dp_img_sub = self.create_subscription(
             Image,
             '/realsense/depth/image_raw',
             self.depth_callback,
-            10) 
-        
+            10)
 
-        # publish grasp box
+        # Publisher to send the grasp bounding box result
+        self.grasp_box_pub = self.create_publisher(Float64MultiArray, '/grasp_bounding_box', 10)
 
-        self.grasp_box_pub = self.create_publisher(Float64MultiArray, '/grasp_bounding_box', 10)  
-
-        # to get depth value in 3D world space , we will need to subscibe to the depth image
-
+        # Publisher for depth image in 3D world space
         self.depth_image_value = self.create_publisher(Image, '/vbrm_project/depth_image', 10)
-        # Lets define a service that takes  two strings for 2 models and run respective models
 
-        # define service definition with name grconv.srv  - as a code for which model to use and the publish message type
+        # Service definition that takes a model selection (GRConvNet or GGCNN) and returns the grasp data
+        self.grasp_srv = self.create_service(GrConv, 'grconv_model', self.grasp_callback)
 
-        self.grasp_srv = self.create_service(GrConv,'grconv_model',self.grasp_callback)
-
+        # Initialize both GRConvNet and GGCNN models
         self.model1 = GraspDetectionNet()
-        self.model2 = GraspDetectionGGCNN()  
-        # self.model2 = GGCNN_Grasp()
-        self.rgb = None
-        self.depth = None
+        self.model2 = GraspDetectionGGCNN()
+        self.rgb = None  # Placeholder for RGB image
+        self.depth = None  # Placeholder for depth image
 
-        self.br = CvBridge()
+        self.br = CvBridge()  # Bridge for converting ROS image messages to OpenCV images
 
-
-
-    def grasp_callback(self,request,response):
-
+    # Service callback to process model requests
+    def grasp_callback(self, request, response):
+        # Use GRConvNet if specified by the user
         if request.model == "use_grconvnet":
-            grasp, depth,_ = self.model1.run_grasp_detection(self.rgb, self.depth)
+            grasp, depth, _ = self.model1.run_grasp_detection(self.rgb, self.depth)
 
+            # Prepare the grasp data to be sent as a ROS message
             grasp_msg = Float64MultiArray()
-            grasp = np.array(grasp)
-            grasp = grasp.astype(np.float64)
+            grasp = np.array(grasp).astype(np.float64)
             grasp_msg.data = grasp.tolist()
-            
 
+            # Log the result and assign it to the response
             self.get_logger().info('Generated Grasp using GRConvNet')
-            response.grasp = grasp_msg   # Assign the grasp message to the response
+            response.grasp = grasp_msg
             
+            # Publish the grasp bounding box and depth image
             self.grasp_box_pub.publish(grasp_msg)
             self.depth_image_value.publish(self.br.cv2_to_imgmsg(depth))
 
-
-        elif request.model == "use_ggcnn2":
-            # grasp = self.model2.get_grasp(self.rgb,self.depth,300,300,40)   
-            grasp, depth,_ = self.model2.run_grasp_detection(self.rgb, self.depth)  
-            # grasp = self.model2.process_data(self.rgb, self.depth)
+        # Use GGCNN if specified by the user
+        elif request.model == "use_ggcnn":
+            grasp = self.model2.get_grasp(self.rgb, self.depth, 300, 300, 0)
             grasp_msg = Float64MultiArray()
-            grasp = np.array(grasp)
-            grasp = grasp.astype(np.float64)
+            grasp = np.array(grasp).astype(np.float64)
             grasp_msg.data = grasp.tolist()
 
-            self.get_logger().info('Generated Grasp using GGCNN')
-            response.grasp = grasp_msg  # Assign the grasp message to the response
+            # Log the result and assign it to the response
+            self.get_logger().info('Generated Grasp using GGCNN 1.0')
+            response.grasp = grasp_msg
             
+            # Publish the grasp bounding box
             self.grasp_box_pub.publish(grasp_msg)
 
         else:
             print("No input from User")
 
         return response
-        
-    def rgb_callback(self,msg):
 
-        current_frame = self.br.imgmsg_to_cv2(msg)  # convert from ros message to cv2 object
-        current_frame = cv2.cvtColor(current_frame,cv2.COLOR_BGR2RGB)   # converting from standard BGR to RGB image format for model processing
-        print('got the frame')
-        self.rgb = current_frame
+    # Callback for receiving the RGB image
+    def rgb_callback(self, msg):
+        # Convert ROS image message to OpenCV format and adjust color space for model processing
 
-    
-    def depth_callback(self,msg):
+        current_frame = self.br.imgmsg_to_cv2(msg)
+        current_frame = cv2.cvtColor(current_frame, cv2.COLOR_BGR2RGB)
+        print('Got the RGB frame')
+        self.rgb = current_frame  # Save the RGB image
 
-        depth_frame = self.br.imgmsg_to_cv2(msg)  # convert from ros message to cv2 object
-        self.depth = depth_frame
+    # Callback for receiving the depth image
+    def depth_callback(self, msg):
+        depth_frame = self.br.imgmsg_to_cv2(msg)
+        self.depth = depth_frame  # Save the depth image
 
 
 def main(args=None):
+    rclpy.init(args=args)  # Initialize ROS communication
+    gr_service = GraspService()  # Instantiate the service
 
-    rclpy.init(args=args)
-    gr_service = GraspService()
+    rclpy.spin(gr_service)  # Keep the node running to process incoming requests
 
-    rclpy.spin(gr_service)
-
-    gr_service.destroy_node()
-
-    rclpy.shutdown()
-    
-
+    gr_service.destroy_node()  # Destroy the node when done
+    rclpy.shutdown()  # Shutdown ROS communication
