@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-        'grasp_model = grasp_model.grconv_service:main'
+        'grconv_service = grasp_model.grconv_service:main',
+        'generate_3d_grasp_pose = grasp_model.generate_3d_grasp_pose:main'
         ],
     },
 )
