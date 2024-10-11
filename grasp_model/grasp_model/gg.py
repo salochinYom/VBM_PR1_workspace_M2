@@ -28,8 +28,9 @@ class GraspDetectionNet():
         self.network.to(self.device)
 
     def load_and_preprocess_image(self, rgb_img, depth_img):
+        og_depth = depth_img.copy()
         depth_img_preprocessed = self.preprocess_depth_image(depth_img)
-        return rgb_img, depth_img_preprocessed  
+        return rgb_img, depth_img_preprocessed ,og_depth 
 
     def preprocess_depth_image(self, depth_image):
         depth_copy = depth_image.copy()
@@ -115,23 +116,25 @@ class GraspDetectionNet():
         plt.show()
 
     def run_grasp_detection(self, rgb, depth):
-        rgb_img, depth_img = self.load_and_preprocess_image(rgb, depth)
-        quality, angle, width = self.predict_grasp(rgb_img, depth_img)
+        rgb_img, depth_img,og_depth  = self.load_and_preprocess_image(rgb,depth)
+        quality, angle, width  = self.predict_grasp(rgb_img, depth_img)
 
-        grasp_rectangles = detect_grasps(quality, angle, width, no_grasps=1)
+        grasp_rectangles = detect_grasps(quality, angle, width, no_grasps=1) 
 
         x_cen = round(grasp_rectangles[0].center[0], 5)
-        y_cen = round(grasp_rectangles[0].center[1], 5)
+        y_cen = round(grasp_rectangles[0].center[1] , 5)
+
+        # x_cen = round(grasp_rectangles[0].center[0] + offset[0], 5)
+        # y_cen = round(grasp_rectangles[0].center[1] + offset[1], 5)
         w = round(grasp_rectangles[0].width, 5)
         h = round(grasp_rectangles[0].length, 5)
         theta = round(grasp_rectangles[0].angle, 5)
 
         print(f"Grasp Center: ({x_cen}, {y_cen}), Width: {w}, Height: {h}, Angle: {theta}")
         self.visualize_grasp(rgb_img, grasp_rectangles)
-
-        # Return quality, width, and angle for plotting
-        return quality, width, angle
-
+        return [x_cen, y_cen, w, h, theta], og_depth, grasp_rectangles
+    
+    
     def testing_model(self):
         rgb_img = imread(r"/home/raval/robotic-grasping/cornell-dataset/01/pcd0138r.png")
         depth_img = imread(r"/home/raval/robotic-grasping/cornell-dataset/01/pcd0138d.tiff")
