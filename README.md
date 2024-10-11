@@ -2,7 +2,7 @@
 
 ### 1) Navigate to your workspace's `src` directory:
 
-cd ~/your_workspace/src 
+      cd ~/your_workspace/src 
 
 ###  2) Clone the repository:
 
@@ -12,28 +12,32 @@ cd ~/your_workspace/src
 
       colcon build --symlink install
       
-      colcon build --symlink install
-   4) Build the workspace
-      
+ ### 4) Source the workspace:
+
       source install/setup.bash
-   5) Run the simulation:
       
+ ### 5) Run the simulation:
+
       ros2 launch vbm_project_env simulation.launch.py
-   6) Start the grasp model service:
-      bash
-      ros2 run grasp_model grconv_service
-   7) Call this service to run GRCONVNet:
-      bash
+      
+###  6) Start the grasp model service:
+      
+       ros2 run grasp_model grconv_service
+
+###   7) Call this service to run GRCONVNet:
+     
       ros2 service call /grconv_model define_service/srv/GrConv "{model: 'use_grconvnet'}"
-   8) Call this service to run GGCNN:
-      bash
+      
+###   8) Call this service to run GGCNN:
+    
       ros2 service call /grconv_model define_service/srv/GrConv "{model: 'use_ggcnn'}"
-   9) Generate 3D grasps:
-      bash
+      
+ ###  9) Generate 3D grasps:
+
       ros2 run grasp_model generate_3d_grasp
     
-   9) Visualize in RViz:
-      bash
+  ### 10) Visualize in RViz:
+ 
       ros2 run rviz2 rviz2
 
 
