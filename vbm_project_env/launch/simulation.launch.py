@@ -10,8 +10,6 @@ import yaml
 
 def generate_launch_description():
 
-
-
     world_path = os.path.join(
         get_package_share_directory('vbm_project_env'),
         'worlds',
@@ -28,16 +26,33 @@ def generate_launch_description():
     robot_description_config = open(simulation_urdf_path).read()
     robot_description = {'robot_description': robot_description_config}
 
+# Object is lying on the table in a position similar to the trained model objects
+
     spawn_entity = Node(package='gazebo_ros', executable="spawn_entity.py",
                         arguments=['-file', simulation_urdf_path,
                                    '-entity', 'camera',
-                                   '-x', '0.475',  # 0.475 - gr
+                                   '-x', '0.0', 
                                    '-y', '0.0',
-                                   '-z', '0.6',  #0.75. 0.55  0.6 gr
-                                   '-R', '3.14159',
-                                   '-P', '3.15',  # 3.15 2.75  3.15 gr
+                                   '-z', '1.0',  
+                                   '-R', '0.0',  
+                                   '-P', '1.57',  
                                    '-Y', '0.0'],
                         output='both')
+    
+
+# Object in upright position on he the table
+
+    # spawn_entity = Node(package='gazebo_ros', executable="spawn_entity.py",
+    #                     arguments=['-file', simulation_urdf_path,
+    #                                '-entity', 'camera',
+    #                                '-x', '0.475', 
+    #                                '-y', '0.0',
+    #                                '-z', '0.6',  
+    #                                '-R', '3.14159',  
+    #                                '-P', '3.15',  
+    #                                '-Y', '0.0'],
+    #                     output='both')
+
 
     node_robot_state_publisher = Node(
         package='robot_state_publisher',
