@@ -21,7 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
         'grconv_service = grasp_model.grconv_service:main',
-        'generate_3d_grasp_pose = grasp_model.generate_3d_grasp_pose:main'
+        'generate_3d_grasp = grasp_model.generate_3d_grasp_pose:main'
         ],
     },
 )
