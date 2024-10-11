@@ -1,12 +1,14 @@
 # Instructions to run the repository:
 ### 1) Navigate to your workspace's `src` directory:
 ```bash
-   1) Navigate to your workspace's src directory:
-      
-      cd ~/your_workspace/src
-   2) Clone the repository:
-      
+  cd ~/your_workspace/src
+### 2) Clone the repository:
+```bash
+  cd ~/your_workspace/src
+###  2) Clone the repository:
+```bash
       git clone https://github.com/salochinYom/VBM_PR1_workspace_M2.git
+
    3) Build the workspace
       
       colcon build --symlink install
