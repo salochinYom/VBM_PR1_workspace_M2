@@ -1,3 +1,8 @@
+import sys
+import os
+absPath = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(absPath)                                # Adding the path to the custom modules for grasp detection
+
 import rclpy
 from rclpy.node import Node
 import cv2
@@ -15,6 +20,7 @@ from define_service.srv import GrConv      # Custom service definition for grasp
 class GraspService(Node):
 
     def __init__(self):
+        
         super().__init__('Grasp_grconv_service')  # Initialize the node 
 
         # Subscription to the RGB image topic from the Realsense camera
@@ -102,6 +108,7 @@ class GraspService(Node):
 
 
 def main(args=None):
+    print(absPath)
     rclpy.init(args=args)  # Initialize ROS communication
     gr_service = GraspService()  # Instantiate the service
 

@@ -1,6 +1,5 @@
 import sys
 import os
-
 # Add the current directory to the system path
 absPath = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(absPath)
@@ -14,6 +13,7 @@ import scipy.ndimage as ndimage
 import time
 import math
 
+sys.path.append(absPath)
 from models.ggcnn import GGCNN  # Import the GGCNN model
 
 
@@ -147,6 +147,7 @@ class GraspDetectionGGCNN():
 
 
 if __name__ == "__main__":
+    print(absPath)
     # Create an instance of the model and run the test function
     grasp_model = GraspDetectionGGCNN()
     grasp_model.testing_model()
